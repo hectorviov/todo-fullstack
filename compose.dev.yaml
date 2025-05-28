@@ -20,12 +20,26 @@ services:
     ports:
       - 3000:3000
     networks:
-      - my_network
+      - nextjs_network
+    depends_on:
+      - mongo-db
+
+  mongo-db:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: nextjs-todo
+    volumes:
+      - ./docker/mongodb/data:/data/db
+    networks:
+      - nextjs_network
+
 
   # Add more containers below (nginx, postgres, etc.)
 
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname
 networks:
-  my_network:
+  nextjs_network:
     external: true

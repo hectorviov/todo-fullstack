@@ -1,70 +1,102 @@
 import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
+import {useEffect, useState} from "react";
+import TodoForm from '@/forms/TodoForm';
+import TodoList from '@/components/TodoList';
+import {Todo} from '@/types';
+import { createTodo } from "@/utils/todoFactory";
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next app</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    const [todos, setTodos] = useState<Todo[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js</a> on Docker Compose!
-        </h1>
+    useEffect(() => {
+        refreshTodos();
+    }, []);
 
-        <p className={styles.description}>
-          Get started by editing{" "}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
+    const sortTodos = (items: Todo[]): Todo[] => {
+        return [...items].sort((a: Todo, b: Todo) => {
+            if (a.done !== b.done) return a.done ? 1 : -1;
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+    };
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+    const refreshTodos = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/todos')
+            const data = await response.json();
+            const ordered = sortTodos(data);
+            setTodos(ordered);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+    const formSubmit = async (task: string) => {
+        try {
+            const res = await fetch('/api/todos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({task})
+            });
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+            if (!res.ok) throw new Error('Error creating todo');
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+            const todo: Todo = await res.json();
+            setTodos(sortTodos([...todos, todo]))
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const toggleDone = async (id: string) => {
+        try {
+            const res = await fetch(`/api/todos?id=${id}`, { method: "PATCH" });
+            if (!res.ok) throw new Error("Failed to toggle");
+
+            const updatedTodo: Todo = await res.json();
+
+            setTodos((prevTodos) => {
+                const newTodos = prevTodos.map((todo) =>
+                    todo._id === updatedTodo._id ? updatedTodo : todo
+                );
+                return sortTodos(newTodos);
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const deleteTodo = async (id: string) => {
+        const res = await fetch(`/api/todos?id=${id}`, {
+            method: 'DELETE'
+        })
+
+        if (res.ok) {
+            setTodos(prev => sortTodos(prev.filter(todo => todo._id !== id)));
+        } else {
+            console.error("Failed to delete todo");
+        }
+    };
+
+    return (
+        <div className={'min-h-screen py-0 px-0.5 flex'}>
+            <Head>
+                <title>Simple TODO Fullstack</title>
+                <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+                <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+                <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+                <link rel="manifest" href="/site.webmanifest"></link>
+            </Head>
+
+            <main className={'py-5 px-0 flex-1 flex flex-col items-center h-screen'}>
+                <TodoForm onSubmit={formSubmit}/>
+                <TodoList todos={todos} onToggleDone={toggleDone} onDelete={deleteTodo}/>
+            </main>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
