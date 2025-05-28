@@ -9,7 +9,7 @@ type Props = {
 
 const TodoCard: React.FC<Props> = ({todo, onToggleDone, onDelete}) => {
     return (
-        <div className={`flex justify-between rounded-xl p-2 shadow-md ${todo.done ? "bg-gray-300" : ""}`}>
+        <div className={`flex justify-between rounded-xl p-2 shadow-md ${todo.done ? "bg-gray-300" : "bg-white"}`}>
             <div className={`text-justify p-5`}>
                 <p className={`text-lg ${todo.done ? "line-through text-gray-500" : "text-black"}`}>
                     {todo.task}

@@ -3,14 +3,14 @@ import {useEffect, useState} from "react";
 import TodoForm from '@/forms/TodoForm';
 import TodoList from '@/components/TodoList';
 import {Todo} from '@/types';
-import { createTodo } from "@/utils/todoFactory";
+import {createTodo} from "@/utils/todoFactory";
 
 export default function Home() {
     const [todos, setTodos] = useState<Todo[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        refreshTodos();
+        fetchTodos();
     }, []);
 
     const sortTodos = (items: Todo[]): Todo[] => {
@@ -20,7 +20,7 @@ export default function Home() {
         });
     };
 
-    const refreshTodos = async () => {
+    const fetchTodos = async () => {
         setLoading(true);
         try {
             const response = await fetch('/api/todos')
@@ -55,7 +55,7 @@ export default function Home() {
 
     const toggleDone = async (id: string) => {
         try {
-            const res = await fetch(`/api/todos?id=${id}`, { method: "PATCH" });
+            const res = await fetch(`/api/todos?id=${id}`, {method: "PATCH"});
             if (!res.ok) throw new Error("Failed to toggle");
 
             const updatedTodo: Todo = await res.json();
@@ -84,18 +84,20 @@ export default function Home() {
     };
 
     return (
-        <div className={'min-h-screen py-0 px-0.5 flex'}>
+        <div className={'min-h-screen min-w-screen py-0 px-0.5 flex bg-gray-100'}>
             <Head>
                 <title>Simple TODO Fullstack</title>
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
                 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
                 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
                 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
                 <link rel="manifest" href="/site.webmanifest"></link>
             </Head>
 
-            <main className={'py-5 px-0 flex-1 flex flex-col items-center h-screen'}>
+            <main className={'py-5 px-0 items-center h-screen w-screen flex flex-col justify-start'}>
                 <TodoForm onSubmit={formSubmit}/>
-                <TodoList todos={todos} onToggleDone={toggleDone} onDelete={deleteTodo}/>
+                <TodoList todos={todos} onToggleDone={toggleDone} onDelete={deleteTodo} loading={loading} />
             </main>
         </div>
     );

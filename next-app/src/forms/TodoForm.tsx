@@ -19,11 +19,11 @@ const TodoForm: React.FC<Props> = ({ onSubmit }) => {
     };
 
     return (
-        <div className="m-3 flex h-[4rem] w-dvh sm:w-150 rounded-md shadow-md">
+        <div className="m-3 flex h-[5rem] sm:w-150 rounded-md shadow-md bg-white">
             <form className="grid w-full grid-cols-[9fr_1fr] space-x-2" onSubmit={handleSubmit}>
-                <input className="ms-2 my-2 rounded-md bg-white p-2" type="text" placeholder="New todo..."
+                <input className="ms-3 me-1 my-3 rounded-md p-3 bg-gray-100" type="text" placeholder="New todo..."
                        onChange={textChanged} value={task} required id={"taskInput"}/>
-                <div className="flex items-center justify-center m-0">
+                <div className="flex items-center justify-center me-1">
                     <button
                         type="submit">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
